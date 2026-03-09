@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Plus, MoreVertical, Edit2, Trash2, Clock, CalendarIcon, Loader2 } from "lucide-react";
+import { Plus, MoreVertical, Edit2, Trash2, Clock, CalendarIcon, Loader2, CheckSquare } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function TasksPage() {
