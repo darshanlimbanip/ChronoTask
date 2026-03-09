@@ -24,31 +24,36 @@ function ProtectedRoute({ component: Component }: { component: React.ElementType
 function Router() {
   const { user, isLoading } = useAuth();
   
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <Switch>
       <Route path="/auth">
-        {() => (isLoading ? null : user ? <Redirect to="/" /> : <AuthPage />)}
+        {() => (user ? <Redirect to="/" /> : <AuthPage />)}
       </Route>
       
       <Route path="/">
-        <AppLayout>
-          <ProtectedRoute component={Dashboard} />
-        </AppLayout>
+        {() => (user ? <AppLayout><ProtectedRoute component={Dashboard} /></AppLayout> : <Redirect to="/auth" />)}
       </Route>
       
       <Route path="/tasks">
-        <AppLayout>
-          <ProtectedRoute component={TasksPage} />
-        </AppLayout>
+        {() => (user ? <AppLayout><ProtectedRoute component={TasksPage} /></AppLayout> : <Redirect to="/auth" />)}
       </Route>
       
       <Route path="/timesheet">
-        <AppLayout>
-          <ProtectedRoute component={TimesheetPage} />
-        </AppLayout>
+        {() => (user ? <AppLayout><ProtectedRoute component={TimesheetPage} /></AppLayout> : <Redirect to="/auth" />)}
       </Route>
 
-      <Route component={NotFound} />
+      <Route>{() => <Redirect to={user ? "/" : "/auth"} />}</Route>
     </Switch>
   );
 }

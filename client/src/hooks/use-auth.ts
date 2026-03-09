@@ -15,10 +15,16 @@ export function useAuth() {
   const userQuery = useQuery({
     queryKey: [api.auth.me.path],
     queryFn: async () => {
-      const res = await fetch(api.auth.me.path, { credentials: "include" });
-      if (res.status === 401) return null;
-      if (!res.ok) throw new Error("Failed to fetch user");
-      return api.auth.me.responses[200].parse(await res.json());
+      try {
+        const res = await fetch(api.auth.me.path, { credentials: "include" });
+        if (res.status === 401) return null;
+        if (!res.ok) throw new Error("Failed to fetch user");
+        const data = await res.json();
+        return data;
+      } catch (error) {
+        console.error("Auth check error:", error);
+        return null;
+      }
     },
     retry: false,
   });
