@@ -1,6 +1,11 @@
 import { z } from 'zod';
 import { insertTaskSchema, tasks, timeLogs, users } from './schema';
 
+const dateInput = z.preprocess(
+  (value) => (value === undefined || value === null || value === "" ? null : value),
+  z.coerce.date().nullable()
+);
+
 export const errorSchemas = {
   validation: z.object({
     message: z.string(),
@@ -72,7 +77,9 @@ export const api = {
     create: {
       method: 'POST' as const,
       path: '/api/tasks' as const,
-      input: insertTaskSchema,
+      input: insertTaskSchema.extend({
+        dueDate: dateInput.optional(),
+      }),
       responses: {
         201: z.custom<typeof tasks.$inferSelect>(),
         400: errorSchemas.validation,
@@ -81,7 +88,13 @@ export const api = {
     update: {
       method: 'PUT' as const,
       path: '/api/tasks/:id' as const,
-      input: insertTaskSchema.partial().extend({ status: z.string().optional(), totalMinutesSpent: z.number().optional() }),
+      input: insertTaskSchema
+        .partial()
+        .extend({
+          dueDate: dateInput.optional(),
+          status: z.string().optional(),
+          totalMinutesSpent: z.number().optional(),
+        }),
       responses: {
         200: z.custom<typeof tasks.$inferSelect>(),
         400: errorSchemas.validation,

@@ -1,0 +1,31 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K11:34:26 AM [express] serving on port 5000
+11:34:32 AM [express] GET /api/auth/me 401 in 1ms
+11:34:33 AM [express] GET /api/auth/me 401 in 1ms
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m11:35:08 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/App.tsx, /src/pages/auth-page.tsx, /src/components/layout/AppLayout.tsx, /src/components/layout/AppSidebar.tsx, /src/index.css[22m

@@ -23,8 +23,36 @@ export function ActiveTimer() {
   const pendingTasks = tasks.filter(t => t.status !== "Completed");
   const createLogMutation = useCreateTimeLog(selectedTaskId ? parseInt(selectedTaskId) : null);
 
+  // Load any active timer from previous session (navigation or reload)
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    try {
+      const stored = window.localStorage.getItem("chrono-active-timer");
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as {
+        taskId: string;
+        startTime: string;
+        isActive: boolean;
+      };
+      if (!parsed.isActive || !parsed.taskId || !parsed.startTime) return;
+
+      const restoredStart = new Date(parsed.startTime);
+      if (Number.isNaN(restoredStart.getTime())) return;
+
+      setSelectedTaskId(parsed.taskId);
+      setStartTime(restoredStart);
+      setIsActive(true);
+
+      const diffSeconds = Math.floor(
+        (Date.now() - restoredStart.getTime()) / 1000
+      );
+      setElapsedSeconds(diffSeconds > 0 ? diffSeconds : 0);
+    } catch {
+      // Ignore malformed storage
+    }
+  }, []);
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
     if (isActive) {
       interval = setInterval(() => {
         setElapsedSeconds((prev) => prev + 1);
@@ -33,11 +61,39 @@ export function ActiveTimer() {
     return () => clearInterval(interval);
   }, [isActive]);
 
+  // Warn user before closing/reloading tab while timer is running
+  useEffect(() => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (!isActive) return;
+      event.preventDefault();
+      event.returnValue =
+        "You have an active timer running. Are you sure you want to leave? Your tracking will be affected.";
+    };
+
+    if (isActive) {
+      window.addEventListener("beforeunload", handleBeforeUnload);
+    }
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [isActive]);
+
   const handleStart = () => {
     if (!selectedTaskId) return;
-    setStartTime(new Date());
+    const now = new Date();
+    setStartTime(now);
     setIsActive(true);
     setElapsedSeconds(0);
+
+    window.localStorage.setItem(
+      "chrono-active-timer",
+      JSON.stringify({
+        taskId: selectedTaskId,
+        startTime: now.toISOString(),
+        isActive: true,
+      }),
+    );
   };
 
   const handleStop = async () => {
@@ -48,6 +104,7 @@ export function ActiveTimer() {
     const durationMinutes = Math.max(1, Math.ceil(elapsedSeconds / 60));
     
     setIsActive(false);
+    window.localStorage.removeItem("chrono-active-timer");
     
     try {
       await createLogMutation.mutateAsync({
@@ -59,8 +116,15 @@ export function ActiveTimer() {
       setElapsedSeconds(0);
       setStartTime(null);
     } catch (e) {
-      // Keep state active if it fails so they can retry? 
-      // Actually we'll just let the hook toast the error.
+      // If logging fails, keep local storage entry so the user can retry.
+      window.localStorage.setItem(
+        "chrono-active-timer",
+        JSON.stringify({
+          taskId: selectedTaskId,
+          startTime: startTime.toISOString(),
+          isActive: true,
+        }),
+      );
     }
   };
 

@@ -1,0 +1,9 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K11:40:29 AM [express] serving on port 5000
+11:40:34 AM [express] GET /api/auth/me 401 in 2ms
+11:42:42 AM [express] GET /api/auth/me 304 in 5ms :: {"id":"d05b3eb3-3abc-4d8f-92b3-b8fd75f793a7","username":"darshan","password":"df859a0a83e26ff1914cf81f968987c787fc073e0c39bd362c64dd2d0dc3db987b24d6b06f99389e3c1c42fe2c4a1ec46c2174879701e5542bfbac44aceafb1c.96c29de88b678133f04c63493c351b68"}
+11:42:42 AM [express] GET /api/tasks 304 in 6ms :: []
+11:43:11 AM [express] POST /api/tasks 400 in 17ms :: {"message":"Expected date, received string","field":"dueDate"}

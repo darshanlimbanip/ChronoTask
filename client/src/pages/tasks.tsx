@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { format, isToday, isPast } from "date-fns";
 import { useTasks, useUpdateTask, useDeleteTask } from "@/hooks/use-tasks";
 import { TaskDialog } from "@/components/tasks/TaskDialog";
 import { Button } from "@/components/ui/button";
@@ -23,9 +23,33 @@ export default function TasksPage() {
   const updateTask = useUpdateTask();
   const deleteTask = useDeleteTask();
 
+  const searchParams = new URLSearchParams(window.location.search);
+  const view = searchParams.get("view");
+
   const filteredTasks = tasks.filter(t => {
-    if (filter === "All") return true;
-    return t.status === filter;
+    // Status-based filter from dropdown
+    if (filter !== "All") {
+      if (filter === "Active") {
+        if (t.status === "Completed") return false;
+      } else if (t.status !== filter) {
+        return false;
+      }
+    }
+
+    // View coming from dashboard cards
+    if (view === "active") {
+      if (t.status === "Completed") return false;
+    } else if (view === "today") {
+      if (!t.dueDate) return false;
+      if (!isToday(new Date(t.dueDate))) return false;
+    } else if (view === "overdue") {
+      if (!t.dueDate) return false;
+      const dueDate = new Date(t.dueDate);
+      if (!(isPast(dueDate) && !isToday(dueDate))) return false;
+      if (t.status === "Completed") return false;
+    }
+
+    return true;
   });
 
   const getPriorityColor = (p: string) => {
@@ -65,6 +89,7 @@ export default function TasksPage() {
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               <SelectItem value="All">All Tasks</SelectItem>
+              <SelectItem value="Active">Active</SelectItem>
               <SelectItem value="Pending">Pending</SelectItem>
               <SelectItem value="In Progress">In Progress</SelectItem>
               <SelectItem value="Completed">Completed</SelectItem>
