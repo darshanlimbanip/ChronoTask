@@ -1,14 +1,12 @@
 import express, { type Express } from "express";
 import fs from "fs";
 import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export function serveStatic(app: Express) {
-  // After esbuild bundles to dist/index.cjs, __dirname = dist/
-  // Vite builds the client to client/dist/, so go up one level
+  // In CJS bundle, esbuild provides __dirname automatically.
+  // dist/index.cjs is at: dist/
+  // Vite builds client to: client/dist/
+  // So from dist/, go up one level then into client/dist/
   const distPath = path.resolve(__dirname, "../client/dist");
 
   if (!fs.existsSync(distPath)) {
@@ -19,6 +17,7 @@ export function serveStatic(app: Express) {
 
   app.use(express.static(distPath));
 
+  // fall through to index.html if the file doesn't exist
   app.use("/{*path}", (_req, res) => {
     res.sendFile(path.resolve(distPath, "index.html"));
   });
